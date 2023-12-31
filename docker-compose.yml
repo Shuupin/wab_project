@@ -3,21 +3,25 @@ version: '3.1'
 
 services:
 
-  mongo:
-    image: mongo
+  rabbitmq:
+    image: rabbitmq:management
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=user
+#      - RABBITMQ_DEFAULT_PASS=secret
     ports:
-      - 27017:27017
+      - 5672:5672
+      - 15672:15672
+  db:
+    image: postgres
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d:ro
+    ports:
+      - 5432:5432
 
-  mongo-express:
-    image: mongo-express
-    depends_on:
-      - mongo
+  adminer:
+    image: adminer
     ports:
-      - 27000:8081
-    environment:
-      ME_CONFIG_BASICAUTH_USERNAME: root
-      ME_CONFIG_BASICAUTH_PASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      - 8080:8080
