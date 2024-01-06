@@ -13,6 +13,8 @@ import json
 import database
 import models
 import uuid
+from sqlalchemy import update
+
 conn_params = pika.ConnectionParameters(host='127.0.0.1')
 conn = pika.BlockingConnection(conn_params)
 channel = conn.channel()
@@ -43,6 +45,30 @@ body:      {body}""")
             db.commit()
             db.refresh(user)
             return user        
+        if(result["method"]=="Update"):
+            user_db:models.User = db.query(models.User).filter((models.User.id == result["uuid"])).first()
+            print("User Update")
+            try:
+                user_db.name = result["name"]
+                user_db.surname = result["surname"]
+                user_db.position = result["position"]
+                user_db.salary = result["salary"]
+            except Exception as error:
+                print(f"### Update could not be preformed: {type(error).__name__} ---- {error}")
+            
+            db.commit()
+            return user_db        
+        if(result["method"]=="Delete"):
+            user_db:models.User = db.query(models.User).filter((models.User.id == result["uuid"])).first()
+            print("Detele user")
+            print(user_db.name)
+            try:
+                db.delete(user_db)
+            except Exception as error:
+                print(f"### Delete could not be preformed: {type(error).__name__} ---- {error}")
+            
+            db.commit()
+            return user_db        
     if(result["table"] == "Warehouse"):
         if(result["method"]=="Insert"):
             warehouse= models.Warehouse(
@@ -59,6 +85,74 @@ body:      {body}""")
             db.commit()
             db.refresh(warehouse)
             return warehouse        
+        if(result["method"]=="Update"):
+            warehouse_db:models.Warehouse = db.query(models.Warehouse).filter((models.Warehouse.id == result["uuid"])).first()
+            print("Update warehouse")
+            print(warehouse_db.address)
+            try:
+               warehouse_db.address = result["address"]
+               warehouse_db.manager_id = result["manager_id"]
+            except Exception as error:
+                print(f"### Update could not be preformed: {type(error).__name__} ---- {error}")
+            print(warehouse_db.address)
+            
+            db.commit()
+            return warehouse_db        
+        if(result["method"]=="Delete"):
+            warehouse_db:models.Warehouse = db.query(models.Warehouse).filter((models.Warehouse.id == result["uuid"])).first()
+            print("Detele warehouse")
+            print(warehouse_db.address)
+            try:
+                db.delete(warehouse_db)
+            except Exception as error:
+                print(f"### Delete could not be preformed: {type(error).__name__} ---- {error}")
+            
+            db.commit()
+            return warehouse_db        
+    if(result["table"] == "Item"):
+        if(result["method"]=="Insert"):
+            item= models.Item(
+                id=uuid.uuid4(),
+                name = result["name"],
+                amount = result["amount"],
+                description = result["description"],
+                warehouse_id = result["warehouse_id"]
+                # area = result["area"]
+                                                )    
+            try:
+                db.add(item)
+            except Exception as error:
+                print(f"### Insertion could not be preformed: {type(error).__name__} ---- {error}")
+            
+            db.commit()
+            db.refresh(item)
+            return item        
+        if(result["method"]=="Update"):
+            item_db:models.Item = db.query(models.Item).filter((models.Item.id == result["uuid"])).first()
+            print("Update item")
+            print(item_db.name)
+            try:
+               item_db.name = result["name"]
+               item_db.amount = result["amount"]
+               item_db.description = result["description"]
+               item_db.warehouse = result["warehouse_id"]
+            except Exception as error:
+                print(f"### Update could not be preformed: {type(error).__name__} ---- {error}")
+            print(item_db.name)
+            
+            db.commit()
+            return item_db        
+        if(result["method"]=="Delete"):
+            warehouse_db:models.Warehouse = db.query(models.Warehouse).filter((models.Warehouse.id == result["uuid"])).first()
+            print("Detele warehouse")
+            print(warehouse_db.address)
+            try:
+                db.delete(warehouse_db)
+            except Exception as error:
+                print(f"### Delete could not be preformed: {type(error).__name__} ---- {error}")
+            
+            db.commit()
+            return warehouse_db        
 
     
     
